@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console -- startup and shutdown messages are this process's only output */
 import * as fs from 'fs';
 import * as https from 'https';
 import * as path from 'path';

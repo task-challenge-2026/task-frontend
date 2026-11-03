@@ -93,12 +93,15 @@ describe('GET /', () => {
   });
 
   it('shows the service error page when the API is down', async () => {
+    const logged = jest.spyOn(console, 'error').mockImplementation(() => {});
     api.list.mockRejectedValue(new ApiError(503, 'SERVICE_UNAVAILABLE'));
 
     const res = await request(app).get('/');
 
     expect(res.status).toBe(500);
     expect(res.text).toContain('Sorry, there is a problem with the service');
+    expect(logged).toHaveBeenCalled();
+    logged.mockRestore();
   });
 });
 
