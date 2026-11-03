@@ -1,0 +1,74 @@
+{% extends "template.njk" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "macros/task-tag.njk" import taskTags %}
+
+{% block pageTitle %}{% if errors %}Error: {% endif %}{{ task.title }} - Caseworker tasks - GOV.UK{% endblock %}
+
+{% block beforeContent %}
+  {{ govukBackLink({ text: "Back to your tasks", href: "/" }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if banner %}
+        {{ govukNotificationBanner({ type: "success", text: banner }) }}
+      {% endif %}
+      {% if errors %}
+        {{ govukErrorSummary({ titleText: "There is a problem", errorList: errors }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-xl">{{ task.title }}</h1>
+
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "Status" }, value: { html: taskTags(task) } },
+          { key: { text: "Description" }, value: { text: task.description or "No description" } },
+          { key: { text: "Due" }, value: { text: task.dueAtText } },
+          { key: { text: "Created" }, value: { text: task.createdAtText } },
+          { key: { text: "Last updated" }, value: { text: task.updatedAtText } }
+        ]
+      }) }}
+
+      <form method="post" action="/tasks/{{ task.id }}/status" novalidate>
+        {{ govukRadios({
+          idPrefix: "status",
+          name: "status",
+          fieldset: { legend: { text: "Change status", classes: "govuk-fieldset__legend--m" } },
+          items: statusOptions,
+          errorMessage: errorFor.status if errorFor
+        }) }}
+        {{ govukButton({ text: "Update status" }) }}
+      </form>
+
+      <h2 class="govuk-heading-m">Status history</h2>
+      <table class="govuk-table">
+        <caption class="govuk-table__caption govuk-visually-hidden">Status history</caption>
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">From</th>
+            <th scope="col" class="govuk-table__header">To</th>
+            <th scope="col" class="govuk-table__header">When</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for change in history %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">{{ change.from }}</td>
+              <td class="govuk-table__cell">{{ change.to }}</td>
+              <td class="govuk-table__cell">{{ change.changedAtText }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {{ govukButton({ text: "Delete task", classes: "govuk-button--warning", href: "/tasks/" + task.id + "/delete" }) }}
+    </div>
+  </div>
+{% endblock %}

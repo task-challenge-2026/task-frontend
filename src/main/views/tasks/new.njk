@@ -1,0 +1,85 @@
+{% extends "template.njk" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+
+{% block pageTitle %}{% if errors %}Error: {% endif %}Create a task - Caseworker tasks - GOV.UK{% endblock %}
+
+{% block beforeContent %}
+  {{ govukBackLink({ text: "Back", href: "/" }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if errors %}
+        {{ govukErrorSummary({ titleText: "There is a problem", errorList: errors }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-xl">Create a task</h1>
+
+      <form method="post" action="/tasks" novalidate>
+        {{ govukInput({
+          id: "title",
+          name: "title",
+          label: { text: "Title", classes: "govuk-label--m" },
+          value: values.title,
+          errorMessage: errorFor.title if errorFor
+        }) }}
+
+        {{ govukTextarea({
+          id: "description",
+          name: "description",
+          label: { text: "Description (optional)", classes: "govuk-label--m" },
+          value: values.description,
+          errorMessage: errorFor.description if errorFor
+        }) }}
+
+        {{ govukRadios({
+          idPrefix: "status",
+          name: "status",
+          fieldset: { legend: { text: "Status", classes: "govuk-fieldset__legend--m" } },
+          items: statusOptions,
+          errorMessage: errorFor.status if errorFor
+        }) }}
+
+        {% set dueError = errorFor.dueAt if errorFor %}
+        <div class="govuk-form-group {% if dueError %}govuk-form-group--error{% endif %}">
+          {% call govukFieldset({
+            legend: { text: "Due date and time", classes: "govuk-fieldset__legend--m" },
+            describedBy: "dueAt-hint" + (" dueAt-error" if dueError else "")
+          }) %}
+            <div id="dueAt-hint" class="govuk-hint">
+              For example, 27 3 2027 at 14 30. Use the 24-hour clock, UK time.
+            </div>
+            {% if dueError %}
+              <p id="dueAt-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span> {{ dueError.text }}
+              </p>
+            {% endif %}
+            {{ govukDateInput({
+              id: "dueAt",
+              namePrefix: "dueAt",
+              classes: "govuk-!-margin-bottom-4",
+              items: [
+                { name: "day", label: "Day", classes: "govuk-input--width-2" + (" govuk-input--error" if dueError else ""), value: values.day },
+                { name: "month", label: "Month", classes: "govuk-input--width-2" + (" govuk-input--error" if dueError else ""), value: values.month },
+                { name: "year", label: "Year", classes: "govuk-input--width-4" + (" govuk-input--error" if dueError else ""), value: values.year },
+                { name: "hour", label: "Hour", classes: "govuk-input--width-2" + (" govuk-input--error" if dueError else ""), value: values.hour },
+                { name: "minute", label: "Minute", classes: "govuk-input--width-2" + (" govuk-input--error" if dueError else ""), value: values.minute }
+              ]
+            }) }}
+          {% endcall %}
+        </div>
+
+        {{ govukButton({ text: "Create task" }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

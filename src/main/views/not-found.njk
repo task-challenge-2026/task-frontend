@@ -1,5 +1,13 @@
 {% extends "template.njk" %}
 
+{% block pageTitle %}Page not found - Caseworker tasks - GOV.UK{% endblock %}
+
 {% block content %}
-  <h1 class="govuk-heading-xl">Page Not Found</h1>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">Page not found</h1>
+      <p class="govuk-body">The task or page you are looking for does not exist. It may have been deleted.</p>
+      <p class="govuk-body"><a class="govuk-link" href="/">Go to your tasks</a></p>
+    </div>
+  </div>
 {% endblock %}
