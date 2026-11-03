@@ -1,12 +1,12 @@
 import * as path from 'path';
 
-import { HTTPError } from './HttpError';
-import { Nunjucks } from './modules/nunjucks';
-
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import { glob } from 'glob';
 import favicon from 'serve-favicon';
+
+import { ApiError } from './api/tasks-client';
+import { Nunjucks } from './modules/nunjucks';
 
 const { setupDev } = require('./development');
 
@@ -14,6 +14,7 @@ const env = process.env.NODE_ENV || 'development';
 const developmentMode = env === 'development';
 
 export const app = express();
+app.disable('x-powered-by');
 app.locals.ENV = env;
 
 new Nunjucks(developmentMode).enableFor(app);
@@ -35,12 +36,17 @@ glob
 
 setupDev(app, developmentMode);
 
-// error handler
-app.use((err: HTTPError, req: express.Request, res: express.Response) => {
-  console.log(err);
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = env === 'development' ? err : {};
-  res.status(err.status || 500);
-  res.render('error');
+app.use((req, res) => {
+  res.status(404).render('not-found');
+});
+
+// Express recognises an error handler by its four parameters, so `next` must stay even though it is unused.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof ApiError && err.status === 404) {
+    res.status(404).render('not-found');
+    return;
+  }
+  console.error(err);
+  res.status(500).render('error');
 });
